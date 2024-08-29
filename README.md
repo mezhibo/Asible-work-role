@@ -45,3 +45,97 @@
 10. Выложите playbook в репозиторий.
 
 11. В ответе дайте ссылки на оба репозитория с roles и одну ссылку на репозиторий с playbook.
+
+
+
+
+**Решение**
+
+Для начала по традиции установим 3 машины под управлением Centos так как с Ubuntu не слодилось с первого задания.
+
+Вписываем ip адреса созданных машин в инвентори-фаил
+
+![alt text](https://github.com/mezhibo/Asible-work-role/blob/85a362a6aadb3e295db73868b31809f43bbea921/IMG/1.jpg)
+
+
+Далее для того чтобы перенести значения из старого плей-файла в роли, создадим иерархию папок и проинициализируем их для каждой роли
+
+![alt text][(](https://github.com/mezhibo/Asible-work-role/blob/85a362a6aadb3e295db73868b31809f43bbea921/IMG/2.jpg))
+
+
+Распихаем по частям в нужные директории содержимое плей-файла
+
+По итогу в плей-файле у нас остается содержимое с запуском ролей для Lighthouse, Clickhouse и Vector, а Nginx так и установим без роли через плей
+
+```
+---
+- name: Install clickhouse
+  hosts: clickhouse
+  roles:
+    - role: clickhouse-role
+
+- name: Install vector
+  hosts: vector
+  roles:
+    - role: vector-role
+
+- name: Install lighthouse
+  hosts: lighthouse
+
+  handlers:
+    - name: Start nginx service
+      become: true
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+  pre_tasks:
+    - name: Install epel-release | Install Nginx
+      become: true
+      yum:
+        name: epel-release
+        state: present
+    - name: Install Nginx | Install Nginx
+      become: true
+      yum:
+        name: nginx
+        state: present
+      notify: Start nginx service
+    - name: Create Nginx config | Install Nginx
+      become: true
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        mode: 0644
+      notify: Start nginx service
+
+  roles:
+    - role: lighthouse-role
+
+  post_tasks:
+    - name: Show connect URL lighthouse
+      debug:
+        msg: "http://{{ ansible_host }}/#http://{{ hostvars['clickhouse-01'].ansible_host }}:8123/?user={{ clickhouse_user }}"
+
+```
+
+
+Теперь запускаем его, и видим что все тоже самое что было в содержимом одного плея, отработало через роли
+
+
+![alt text](https://github.com/mezhibo/Asible-work-role/blob/85a362a6aadb3e295db73868b31809f43bbea921/IMG/3.jpg)
+
+
+![alt text](https://github.com/mezhibo/Asible-work-role/blob/85a362a6aadb3e295db73868b31809f43bbea921/IMG/4.jpg)
+
+
+
+**ССЫЛКИ НА РОЛИ**
+
+ - [CLICKHOUSE](https://github.com/mezhibo/mnt-homeworks/tree/2bb9ad07a14e1a0b0333f3b7fe404dfd675c2938/08-ansible-04-role/clickhouse-role)
+
+ - [LIGHTHOUSE](https://github.com/mezhibo/mnt-homeworks/tree/2bb9ad07a14e1a0b0333f3b7fe404dfd675c2938/08-ansible-04-role/lighthouse-role)
+
+ - [VECTOR](https://github.com/mezhibo/mnt-homeworks/tree/2bb9ad07a14e1a0b0333f3b7fe404dfd675c2938/08-ansible-04-role/vector-role)
+
+
+
