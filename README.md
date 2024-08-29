@@ -60,7 +60,7 @@
 
 Далее для того чтобы перенести значения из старого плей-файла в роли, создадим иерархию папок и проинициализируем их для каждой роли
 
-![alt text][(](https://github.com/mezhibo/Asible-work-role/blob/85a362a6aadb3e295db73868b31809f43bbea921/IMG/2.jpg))
+![alt text](https://github.com/mezhibo/Asible-work-role/blob/85a362a6aadb3e295db73868b31809f43bbea921/IMG/2.jpg)
 
 
 Распихаем по частям в нужные директории содержимое плей-файла
